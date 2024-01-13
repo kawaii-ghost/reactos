@@ -110,21 +110,20 @@ static int output_string( HANDLE handle, const WCHAR *msg, ... )
 
 static int output_error( int msg )
 {
-    static const WCHAR fmtW[] = {'%','s',0};
     WCHAR buffer[8192];
 
     LoadStringW( GetModuleHandleW(NULL), msg, buffer, ARRAY_SIZE(buffer));
-    return output_string( GetStdHandle(STD_ERROR_HANDLE), fmtW, buffer );
+    return output_string( GetStdHandle(STD_ERROR_HANDLE), L"%s", buffer );
 }
 
 static int output_header( const WCHAR *prop, ULONG column_width )
 {
-    static const WCHAR bomW[] = {0xfeff}, fmtW[] = L"%-*s\t\n";
+    static const WCHAR bomW[] = {0xfeff};
     int len;
     DWORD count;
     WCHAR buffer[8192];
 
-    len = snprintfW( buffer, ARRAY_SIZE(buffer), fmtW, column_width, prop );
+    len = snprintfW( buffer, ARRAY_SIZE(buffer), L"%-*s\t\n" column_width, prop );
 
     if (!WriteConsoleW( GetStdHandle(STD_OUTPUT_HANDLE), buffer, len, &count, NULL )) /* redirected */
     {
@@ -138,15 +137,12 @@ static int output_header( const WCHAR *prop, ULONG column_width )
 
 static int output_line( const WCHAR *str, ULONG column_width )
 {
-    static const WCHAR fmtW[] = {'%','-','*','s','\r','\n',0};
-    return output_string( GetStdHandle(STD_OUTPUT_HANDLE), fmtW, column_width, str );
+    return output_string( GetStdHandle(STD_OUTPUT_HANDLE), L"%-*s\r\n", column_width, str );
 }
 
 static int query_prop( const WCHAR *class, const WCHAR *propname )
 {
     static const WCHAR select_allW[] = L"SELECT * FROM ";
-    static const WCHAR cimv2W[] = L"ROOT\\CIMV2";
-    static const WCHAR wqlW[] = {'W','Q','L',0};
     HRESULT hr;
     IWbemLocator *locator = NULL;
     IWbemServices *services = NULL;
@@ -170,7 +166,7 @@ static int query_prop( const WCHAR *class, const WCHAR *propname )
                            (void **)&locator );
     if (hr != S_OK) goto done;
 
-    if (!(path = SysAllocString( cimv2W ))) goto done;
+    if (!(path = SysAllocString(L"ROOT\\CIMV2"))) goto done;
     hr = IWbemLocator_ConnectServer( locator, path, NULL, NULL, NULL, 0, NULL, NULL, &services );
     if (hr != S_OK) goto done;
 
@@ -179,7 +175,7 @@ static int query_prop( const WCHAR *class, const WCHAR *propname )
     strcpyW( query, select_allW );
     strcatW( query, class );
 
-    if (!(wql = SysAllocString( wqlW ))) goto done;
+    if (!(wql = SysAllocString(L"WQL"))) goto done;
     hr = IWbemServices_ExecQuery( services, wql, query, flags, NULL, &result );
     if (hr != S_OK) goto done;
 
@@ -238,35 +234,29 @@ done:
 
 int wmain(int argc, WCHAR *argv[])
 {
-    static const WCHAR getW[] = {'g','e','t',0};
-    static const WCHAR quitW[] = {'q','u','i','t',0};
-    static const WCHAR exitW[] = {'e','x','i','t',0};
-    static const WCHAR pathW[] = {'p','a','t','h',0};
-    static const WCHAR classW[] = {'c','l','a','s','s',0};
-    static const WCHAR contextW[] = {'c','o','n','t','e','x','t',0};
     const WCHAR *class, *value;
     int i;
 
-    for (i = 1; i < argc && argv[i][0] == '/'; i++)
+    for (i = 1; i < argc && argv[i][0] == L'/'; i++)
         WINE_FIXME( "command line switch %s not supported\n", debugstr_w(argv[i]) );
 
     if (i >= argc)
         goto not_supported;
 
-    if (!strcmpiW( argv[i], quitW ) ||
-        !strcmpiW( argv[i], exitW ))
+    if (!strcmpiW( argv[i], L"quit" ) ||
+        !strcmpiW( argv[i], L"exit" ))
     {
         return 0;
     }
 
-    if (!strcmpiW( argv[i], classW) ||
-        !strcmpiW( argv[i], contextW ))
+    if (!strcmpiW( argv[i], L"class") ||
+        !strcmpiW( argv[i], L"context ))
     {
         WINE_FIXME( "command %s not supported\n", debugstr_w(argv[i]) );
         goto not_supported;
     }
 
-    if (!strcmpiW( argv[i], pathW ))
+    if (!strcmpiW( argv[i], L"path" ))
     {
         if (++i >= argc)
         {
@@ -288,7 +278,7 @@ int wmain(int argc, WCHAR *argv[])
     if (++i >= argc)
         goto not_supported;
 
-    if (!strcmpiW( argv[i], getW ))
+    if (!strcmpiW( argv[i], L"get" ))
     {
         if (++i >= argc)
             goto not_supported;
