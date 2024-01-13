@@ -32,36 +32,6 @@
 
 WINE_DEFAULT_DEBUG_CHANNEL(wmic);
 
-static const WCHAR biosW[] =
-    {'b','i','o','s',0};
-static const WCHAR computersystemW[] =
-    {'c','o','m','p','u','t','e','r','s','y','s','t','e','m',0};
-static const WCHAR cpuW[] =
-    {'c','p','u',0};
-static const WCHAR logicaldiskW[] =
-    {'L','o','g','i','c','a','l','D','i','s','k',0};
-static const WCHAR nicW[] =
-    {'n','i','c',0};
-static const WCHAR osW[] =
-    {'o','s',0};
-static const WCHAR processW[] =
-    {'p','r','o','c','e','s','s',0};
-
-static const WCHAR win32_biosW[] =
-    {'W','i','n','3','2','_','B','I','O','S',0};
-static const WCHAR win32_computersystemW[] =
-    {'W','i','n','3','2','_','C','o','m','p','u','t','e','r','S','y','s','t','e','m',0};
-static const WCHAR win32_logicaldiskW[] =
-    {'W','i','n','3','2','_','L','o','g','i','c','a','l','D','i','s','k',0};
-static const WCHAR win32_networkadapterW[] =
-    {'W','i','n','3','2','_','N','e','t','w','o','r','k','A','d','a','p','t','e','r',0};
-static const WCHAR win32_operatingsystemW[] =
-    {'W','i','n','3','2','_','O','p','e','r','a','t','i','n','g','S','y','s','t','e','m',0};
-static const WCHAR win32_processW[] =
-    {'W','i','n','3','2','_','P','r','o','c','e','s','s',0};
-static const WCHAR win32_processorW[] =
-    {'W','i','n','3','2','_','P','r','o','c','e','s','s','o','r',0};
-
 static const struct
 {
     const WCHAR *alias;
@@ -69,13 +39,13 @@ static const struct
 }
 alias_map[] =
 {
-    { biosW, win32_biosW },
-    { computersystemW, win32_computersystemW },
-    { cpuW, win32_processorW },
-    { logicaldiskW, win32_logicaldiskW },
-    { nicW, win32_networkadapterW },
-    { osW, win32_operatingsystemW },
-    { processW, win32_processW }
+    { L"bios", L"Win32_BIOS" },
+    { L"computersystem", L"Win32_ComputerSystem" },
+    { L"cpu", L"Win32_Processor" },
+    { L"LogicalDisk", L"Win32_LogicalDisk" },
+    { L"nic", L"Win32_NetworkAdapter" },
+    { L"os", L"Win32_OperatingSystem" },
+    { L"process", L"Win32_Process" }
 };
 
 static const WCHAR *find_class( const WCHAR *alias )
@@ -149,7 +119,7 @@ static int output_error( int msg )
 
 static int output_header( const WCHAR *prop, ULONG column_width )
 {
-    static const WCHAR bomW[] = {0xfeff}, fmtW[] = {'%','-','*','s','\r','\n',0};
+    static const WCHAR bomW[] = {0xfeff}, fmtW[] = L"%-*s\t\n";
     int len;
     DWORD count;
     WCHAR buffer[8192];
@@ -174,8 +144,8 @@ static int output_line( const WCHAR *str, ULONG column_width )
 
 static int query_prop( const WCHAR *class, const WCHAR *propname )
 {
-    static const WCHAR select_allW[] = {'S','E','L','E','C','T',' ','*',' ','F','R','O','M',' ',0};
-    static const WCHAR cimv2W[] = {'R','O','O','T','\\','C','I','M','V','2',0};
+    static const WCHAR select_allW[] = L"SELECT * FROM ";
+    static const WCHAR cimv2W[] = L"ROOT\\CIMV2";
     static const WCHAR wqlW[] = {'W','Q','L',0};
     HRESULT hr;
     IWbemLocator *locator = NULL;
